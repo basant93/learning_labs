@@ -29,6 +29,16 @@ class CabUtils(object):
         token = Token.objects.create(user_id=user_id).key
         return token
 
+    @staticmethod
+    def get_booking_id(user_id):
+        """
+
+        :return:
+        """
+
+        token = Token.objects.create(user_id=user_id).key
+        return token
+
 
     @staticmethod
     def get_role(user_id):

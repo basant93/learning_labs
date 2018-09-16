@@ -20,6 +20,7 @@ from django.conf.urls import url,include
 urlpatterns = [
     url('admin/', admin.site.urls),
     url(r'^api/v1/', include('cabUserAuth.urls', namespace='cabUserAuth')),
+    url(r'^api/v1/', include('cabBookingBase.urls', namespace='cabBookingBase')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 
 ]
