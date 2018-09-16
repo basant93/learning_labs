@@ -38,6 +38,19 @@ class UserPaymentTypeData(object):
 
 
     def __str__(self):
-        return self.booking_id
+        return self.message
 
+
+class UserNewCabData(object):
+    """
+
+    """
+
+    message = None
+
+    def __init__(self):
+        self.message = "New cab added Successful"
+
+    def __str__(self):
+        return self.message
 

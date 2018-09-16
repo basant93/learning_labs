@@ -46,3 +46,23 @@ class PaymentTypeResponseSerializer(serializers.Serializer):
     error_code = serializers.IntegerField()
     status_code = serializers.CharField()
     data = PaymentTypeDataResponseDataSerialers()
+
+
+class NewCabeDataResponseDataSerialers(serializers.Serializer):
+    """
+
+    """
+
+    message = serializers.CharField()
+
+
+
+
+class NewCabResponseSerializer(serializers.Serializer):
+    """
+
+    """
+    success = serializers.BooleanField()
+    error_code = serializers.IntegerField()
+    status_code = serializers.CharField()
+    data = NewCabeDataResponseDataSerialers()

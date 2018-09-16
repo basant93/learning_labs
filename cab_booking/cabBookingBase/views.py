@@ -71,30 +71,19 @@ def create_booking(request):
         response_error = helper.get_error_response(validation_code)
         return response_error
 
-    google_distance_duration_matrix_api_response = helper.get_distance_duration(data)
-
-
-
+    #There are charges for each api request. Use it only when necessary.
+    #google_distance_duration_matrix_api_response = helper.get_distance_duration(data)
 
     if(user_obj is not None ):
 
         try:
             cab_booking_obj = helper.generate_cab_booking_obj(data,user_obj,available_cabs)
-            #cab_booking_obj.save()
             response = helper.get_user_response(cab_booking_obj,google_distance_duration_matrix_api_response)
             return response
 
         except Error:
             return helper.get_error_response(constants.get_server_error_code())
-    else:
 
-        if user_obj.is_active:
-            return helper.get_error_response(constants.get_user_exist())
-        else:
-            user_obj = helper.generate_user_obj(data,encrypted_password,user_obj)
-            user_obj.save()
-            response = helper.get_user_response(user_obj)
-            return response
 
 
 
@@ -108,7 +97,7 @@ def create_new_payment_type(request):
     data = JSONParser().parse(request)
 
     if (data['payment_id'] == '' or data['payment_name'] =='' ):
-        response_error = helper.get_error_response(validation_code)
+        response_error = helper.get_error_response(constants.get_user_validation_failed_error_code())
         return response_error
 
 
@@ -125,5 +114,35 @@ def create_new_payment_type(request):
 
         except Error:
             return helper.get_error_response(constants.get_server_error_code())
+
+
+@api_view(['POST'])
+def create_new_cab(request):
+    """
+
+    :param request:
+    :return:
+    """
+    data = JSONParser().parse(request)
+
+    user_obj = CabUtils.get_user_by_email(data['user_mail'])
+
+    if (data['license_plate_number'] == '' or data['category'] =='' or data['rate_per_km'] == '' or data['user_mail'] =='' or user_obj is None):
+        response_error = helper.get_error_response(constants.get_user_validation_failed_error_code())
+        return response_error
+
+    check_cab_registrations = Cab.objects.filter(cab_license_plate_number = data['license_plate_number']).exists()
+    if(check_cab_registrations is False ):
+
+        try:
+            cab_obj = helper.generate_cab_obj(data,user_obj)
+            cab_obj.save()
+            response = helper.get_new_cab_response()
+            return response
+
+        except Error:
+            return helper.get_error_response(constants.get_server_error_code())
+    elif(check_cab_registrations is True):
+        return helper.get_error_response(constants.get_cab_already_registered_code())
 
 
