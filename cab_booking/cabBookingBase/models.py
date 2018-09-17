@@ -37,6 +37,24 @@ class CabBooking(models.Model):
     status = models.SmallIntegerField(default=1)
     payment_type_id = models.ForeignKey(Payment,on_delete=models.PROTECT)
 
+class PaymentDetails(models.Model):
+    payment_type = models.CharField(max_length=255)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    payment_booking = models.OneToOneField(CabBooking, on_delete=models.PROTECT)
+    origin = models.CharField(max_length=1024)
+    destination = models.CharField(max_length=1024)
+    fare = models.IntegerField(default=40)
+
+class Driver(models.Model):
+    driver_name = models.OneToOneField(User,on_delete=models.PROTECT, default=1)
+    cab_driver = models.OneToOneField(Cab,on_delete=models.PROTECT,default=1)
+    driver_booking = models.OneToOneField(CabBooking, on_delete=models.PROTECT,default=1,blank=True,null=True)
+    dob = models.DateField(max_length=8)
+    driver_license_number = models.CharField(max_length=15)
+    expiry_date = models.DateField(max_length=8)
+    working = models.BooleanField(default=True)
+
+
 
 # class CompanyBase(models.Model):
 #     name = models.CharField(blank = False, unique=True,length=200)

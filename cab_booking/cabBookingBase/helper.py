@@ -47,10 +47,10 @@ def generate_cab_booking_obj(data,user_obj,first_available_cab):
     #cab_category_obj = cab_category.objects.filter(category=data['category']).first()
 
     payment_type_obj = Payment.objects.filter(payment_type_name=data['payment_type']).first()
-
+    generate_booking_id = get_random_string(length=15)
 
     cab_booking_obj = CabBooking()
-    cab_booking_obj.cab_booking_id = get_random_string(length=15)
+    cab_booking_obj.cab_booking_id = generate_booking_id
     cab_booking_obj.user_id = user_obj.id
     cab_booking_obj.cab_info = first_available_cab
     cab_booking_obj.pickup_date = data["pickup_date"]
@@ -63,8 +63,37 @@ def generate_cab_booking_obj(data,user_obj,first_available_cab):
     cab_booking_obj.status = 1
     cab_booking_obj.payment_type_id = payment_type_obj
     cab_booking_obj.save()
-    return cab_booking_obj
+    return generate_booking_id
 
+
+# def generate_cab_payment_details_obj(data,user_obj,cab_booking):
+#     """
+#
+#     :param data:
+#     :param user_obj:
+#     :return:
+#     """
+#
+#     #cab_category_obj = cab_category.objects.filter(category=data['category']).first()
+#
+#     payment_type_obj = Payment.objects.filter(payment_type_name=data['payment_type']).first()
+#
+#
+#     cab_booking_obj = CabBooking()
+#     cab_booking_obj.cab_booking_id = get_random_string(length=15)
+#     cab_booking_obj.user_id = user_obj.id
+#     cab_booking_obj.cab_info = first_available_cab
+#     cab_booking_obj.pickup_date = data["pickup_date"]
+#     cab_booking_obj.pickup_time_start = datetime.datetime.now()
+#     cab_booking_obj.drop_lat = data['drop_lat']
+#     cab_booking_obj.pickup_lat = data['pickup_lat']
+#     cab_booking_obj.pickup_lng = data['pickup_lng']
+#     cab_booking_obj.drop_lat = data['drop_lat']
+#     cab_booking_obj.drop_lng = data['drop_lng']
+#     cab_booking_obj.status = 1
+#     cab_booking_obj.payment_type_id = payment_type_obj
+#     cab_booking_obj.save()
+#     return cab_booking_obj
 
 def generate_cab_obj(data,user_obj):
     """

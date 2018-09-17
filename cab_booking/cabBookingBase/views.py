@@ -2,15 +2,18 @@ from django.shortcuts import render
 
 # Create your views here.
 
-from rest_framework.parsers import JSONParser
-from rest_framework.decorators import api_view
 from django.contrib.auth.models import Group, User
+from django.conf import settings
+from rest_framework.authtoken.models import Token
 from django.db import Error
 from . import helper
 from . import constants
 from cabUtils.utils import CabUtils
-from .models import CabBooking, Payment, Cab, cab_category
+from .models import CabBooking, Payment, Cab, cab_category,PaymentDetails, Driver
 from math import sin, cos, sqrt, atan2, radians
+from rest_framework.parsers import JSONParser
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 
 
 def calculate_distance(data):
@@ -40,6 +43,7 @@ def calculate_distance(data):
 
 
 @api_view(['POST'])
+#@permission_classes((AllowAny,))
 def create_booking(request):
     """
 
@@ -72,12 +76,35 @@ def create_booking(request):
         return response_error
 
     #There are charges for each api request. Use it only when necessary.
-    #google_distance_duration_matrix_api_response = helper.get_distance_duration(data)
+    google_distance_duration_matrix_api_response = helper.get_distance_duration(data)
+
+    cab_rate = cab_category.objects.filter(category=data['category']).first()
+    distance = 30
+    duration = 4
+    origin = "baner"
+    destination = "koregaon Park"
+    cab_fare = 30 * cab_rate.rate_card + 4 * 4
+
+    #fare = (google_distance_duration_matrix_api_response['rows'][0]['elements'][0]['distance']['text']) *
+
 
     if(user_obj is not None ):
 
         try:
-            cab_booking_obj = helper.generate_cab_booking_obj(data,user_obj,available_cabs)
+            generate_booking_id = helper.generate_cab_booking_obj(data,user_obj,available_cabs)
+            #cab_booking_obj.save()
+            #cab_booking_obj = CabBooking.objects.get(cab_booking_id=cab_booking_obj.cab_booking_id)
+            cab_booking_obj = CabBooking.objects.filter(cab_booking_id=generate_booking_id).first()
+
+            payment_details_obj = PaymentDetails(payment_type = data['payment_type'], fare=cab_fare, user=user_obj,
+                                                 payment_booking=cab_booking_obj, origin=origin,destination=destination)
+            payment_details_obj.save()
+            available_driver_obj = Cab.objects.filter(status=0).first()
+            driver_obj = Driver.objects.get(cab_driver=available_driver_obj)
+            driver_obj.driver_booking = cab_booking_obj
+            driver_obj.save()
+
+            #cab_booking_obj = helper.generate_cab_payment_details_obj(data,user_obj,cab_booking_obj)
             response = helper.get_user_response(cab_booking_obj,google_distance_duration_matrix_api_response)
             return response
 
@@ -124,6 +151,13 @@ def create_new_cab(request):
     :return:
     """
     data = JSONParser().parse(request)
+    # #token = request.META.get('Authorization', None)
+    # token = request.META.get('Authorization', None)
+    # check_valid_token = Token.objects.filter(key=token).exists()
+    # if(check_valid_token is  False):
+    #     response_error = helper.get_error_response(constants.get_user_validation_failed_error_code())
+    #     return response_error
+
 
     user_obj = CabUtils.get_user_by_email(data['user_mail'])
 
@@ -132,6 +166,7 @@ def create_new_cab(request):
         return response_error
 
     check_cab_registrations = Cab.objects.filter(cab_license_plate_number = data['license_plate_number']).exists()
+
     if(check_cab_registrations is False ):
 
         try:
@@ -146,3 +181,32 @@ def create_new_cab(request):
         return helper.get_error_response(constants.get_cab_already_registered_code())
 
 
+@api_view(['POST'])
+def fetch_travel_history(request):
+    """
+
+    :param request:
+    :return:
+    """
+    data = JSONParser().parse(request)
+
+    user_obj = CabUtils.get_user_by_email(data['user_mail'])
+
+    if ( user_obj is None):
+        response_error = helper.get_error_response(constants.get_user_validation_failed_error_code())
+        return response_error
+
+    all_cab_booking = CabBooking.objects.filter(user__email = data['user_mail'])
+
+    if(len(all_cab_booking) >0  ):
+
+        try:
+            cab_obj = helper.generate_cab_obj(data,user_obj)
+            cab_obj.save()
+            response = helper.get_new_cab_response()
+            return response
+
+        except Error:
+            return helper.get_error_response(constants.get_server_error_code())
+    elif(len(all_cab_booking) ==0):
+        return helper.get_error_response(constants.get_cab_already_registered_code())

@@ -41,7 +41,7 @@ def generate_user_obj(data,password,user_obj):
     user_obj.first_name = data["first_name"]
     user_obj.last_name = data["last_name"]
     user_obj.password = password
-    user_obj.is_active = False
+    user_obj.is_active = True
     user_obj.date_joined = datetime.datetime.now()
     user_obj.username = data["email"]
     return user_obj

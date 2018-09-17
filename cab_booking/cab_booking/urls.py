@@ -16,11 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url,include
+from rest_framework.authtoken import views
+from rest_framework.authtoken import views as rest_framework_views
+
 
 urlpatterns = [
     url('admin/', admin.site.urls),
     url(r'^api/v1/', include('cabUserAuth.urls', namespace='cabUserAuth')),
     url(r'^api/v1/', include('cabBookingBase.urls', namespace='cabBookingBase')),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api-token-auth/', views.obtain_auth_token),
+    url(r'^get_auth_token/', rest_framework_views.obtain_auth_token, name='get_auth_token'),
 
 ]

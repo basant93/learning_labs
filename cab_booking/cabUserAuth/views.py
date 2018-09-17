@@ -4,12 +4,13 @@ from django.shortcuts import render
 
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.db import Error
 from . import helper
-from cabUtils import constants
+from . import constants
 from cabUtils.utils import CabUtils
 from django.contrib.auth.hashers import make_password
+from cabBookingBase.models import Driver, Cab, CabBooking
 
 
 @api_view(['POST'])
@@ -34,8 +35,16 @@ def register_user(request):
             user_obj = helper.generate_user_obj(data,encrypted_password,None)
             user_obj.save()
 
-            cab_group = Group.objects.get(data['type'])
-            user_obj.groups.add(cab_group)
+            cab_group = Group.objects.get(name = data['type'])
+            add_user_to_group = CabUtils.get_user_by_email(data['email'])
+            cab_group.user_set.add(add_user_to_group)
+            if(data['type'] == constants.get_driver_name()):
+                assign_cab_driver = Cab.objects.filter(cab_license_plate_number = data['cab_license_plate_number']).first()
+
+                cab_booking_obj = CabBooking.objects.filter(id=2).first()
+
+                driver_obj = Driver(driver_name=add_user_to_group, cab_driver=assign_cab_driver, driver_booking= cab_booking_obj, dob= data['dob'], driver_license_number= data['driver_license_number'],expiry_date= data['expiry_date'],working=True )
+                driver_obj.save()
 
             response = helper.get_user_response(user_obj)
             return response
